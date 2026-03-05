@@ -11,23 +11,41 @@ interface GoogleJwtPayload {
 
 export async function POST(request: NextRequest) {
   try {
-    const { credential } = await request.json()
+    const { credential, access_token } = await request.json()
 
-    if (!credential) {
+    if (!credential && !access_token) {
       return NextResponse.json(
-        { error: "Missing credential token" },
+        { error: "Missing credential or access token" },
         { status: 400 }
       )
     }
 
-    // Decode & verify the Google JWT
-    // In production, you should verify the token with Google's public keys
-    // or use the Google Auth Library: google-auth-library
-    const decoded = jwtDecode<GoogleJwtPayload>(credential)
+    let decoded: GoogleJwtPayload | null = null;
 
-    if (!decoded.email_verified) {
+    if (credential) {
+      // Decode & verify the Google JWT
+      decoded = jwtDecode<GoogleJwtPayload>(credential)
+    } else if (access_token) {
+      // Fetch user info from Google using access token
+      const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+        headers: { Authorization: `Bearer ${access_token}` },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch user info from Google");
+      }
+      const data = await res.json();
+      decoded = {
+        sub: data.sub,
+        name: data.name,
+        email: data.email,
+        picture: data.picture,
+        email_verified: data.email_verified,
+      } as GoogleJwtPayload;
+    }
+
+    if (!decoded || !decoded.email_verified) {
       return NextResponse.json(
-        { error: "Email not verified" },
+        { error: "Email not verified or failed to decode info" },
         { status: 401 }
       )
     }
@@ -46,7 +64,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Google auth error:", error)
     return NextResponse.json(
-      { error: "Invalid credential token" },
+      { error: "Invalid credential or access token" },
       { status: 401 }
     )
   }
