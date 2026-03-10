@@ -11,30 +11,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // TODO: Replace with real database authentication
-    // This is a placeholder that simulates a successful login
-    // In production, you would:
-    // 1. Look up the user by email in your database
-    // 2. Verify the password hash
-    // 3. Return the user data or an error
+    // Call Python backend
+    const backendRes = await fetch("http://127.0.0.1:8000/api/v1/users/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email_id: email }),
+    })
 
-    // Placeholder validation — accepts any @sathyabama.ac.in email
-    if (!email.endsWith("@sathyabama.ac.in")) {
+    if (!backendRes.ok) {
+      const errorData = await backendRes.json().catch(() => ({}))
       return NextResponse.json(
-        { error: "Please use your Sathyabama email address" },
-        { status: 401 }
+        { error: errorData.detail || "Backend login failed" },
+        { status: backendRes.status }
       )
     }
 
-    const user = {
-      name: email.split("@")[0],
-      email: email,
-      picture: "",
-      sub: `local_${Date.now()}`,
-      role: "student",
-    }
+    const backendData = await backendRes.json()
 
-    return NextResponse.json({ user }, { status: 200 })
+    return NextResponse.json({
+      access_token: backendData.access_token,
+      user: backendData.user
+    }, { status: 200 })
   } catch (error) {
     console.error("Login error:", error)
     return NextResponse.json(

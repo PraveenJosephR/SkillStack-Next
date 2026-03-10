@@ -50,17 +50,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // TODO: Look up or create the user in your database here
-    // For now, we return the decoded Google user info
-    const user = {
-      name: decoded.name,
-      email: decoded.email,
-      picture: decoded.picture,
-      sub: decoded.sub,
-      role: "student", // Default role — replace with DB lookup
+    // Call the Python backend
+    const backendRes = await fetch("http://127.0.0.1:8000/api/v1/users/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email_id: decoded.email }),
+    })
+
+    if (!backendRes.ok) {
+      const errorData = await backendRes.json().catch(() => ({}))
+      return NextResponse.json(
+        { error: errorData.detail || "Backend login failed" },
+        { status: backendRes.status }
+      )
     }
 
-    return NextResponse.json({ user }, { status: 200 })
+    const backendData = await backendRes.json()
+
+    // Assuming backend returns: { access_token, token_type, user }
+    return NextResponse.json({
+      access_token: backendData.access_token,
+      user: {
+        ...backendData.user,
+        picture: decoded.picture, // keep picture from google
+      }
+    }, { status: 200 })
   } catch (error) {
     console.error("Google auth error:", error)
     return NextResponse.json(

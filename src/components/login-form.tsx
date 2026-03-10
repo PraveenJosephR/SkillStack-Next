@@ -5,7 +5,7 @@ import { useAtom } from "jotai"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 
-import { userAtom, authLoadingAtom } from "@/store/atoms"
+import { userAtom, authLoadingAtom, tokenAtom } from "@/store/atoms"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -32,6 +32,7 @@ export function LoginForm({
 
   // Jotai state
   const [user, setUser] = useAtom(userAtom)
+  const [token, setToken] = useAtom(tokenAtom)
   const [loading, setLoading] = useAtom(authLoadingAtom)
 
   // Local form state
@@ -79,8 +80,11 @@ export function LoginForm({
         return
       }
 
-      // Store user in Jotai state
+      // Store user and token in Jotai state
       setUser(data.user)
+      if (data.access_token) {
+        setToken(data.access_token)
+      }
       console.log("Logged in via Google:", data.user)
 
       // Redirect to dashboard
@@ -114,8 +118,11 @@ export function LoginForm({
         return
       }
 
-      // Store user in Jotai state
+      // Store user and token in Jotai state
       setUser(data.user)
+      if (data.access_token) {
+        setToken(data.access_token)
+      }
       console.log("Logged in via email:", data.user)
 
       // Redirect to dashboard
@@ -177,7 +184,7 @@ export function LoginForm({
                   <FieldLabel htmlFor="password" className="text-white font-medium">Password</FieldLabel>
                   <a
                     href="#"
-                    className="ml-auto text-sm text-white/80 underline-offset-2 hover:underline hover:text-white"
+                    className="ml-auto text-sm text-white/80 underline-offset-2 hover:underline hover:text-primary"
                   >
                     Forgot your password?
                   </a>
@@ -232,9 +239,9 @@ export function LoginForm({
                 </button>
               </Field>
 
-              <FieldDescription className="text-center text-white/80">
+              {/* <FieldDescription className="text-center text-white/80">
                 Don&apos;t have an account? <a href="#" className="text-white font-medium underline-offset-2 hover:underline">Sign up</a>
-              </FieldDescription>
+              </FieldDescription> */}
 
             </FieldGroup>
           </form>
