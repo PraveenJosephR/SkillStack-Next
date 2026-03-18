@@ -2,27 +2,15 @@
 
 import * as React from "react"
 import {
-  IconCamera,
-  IconChartBar,
-  IconDashboard,
-  IconDatabase,
-  IconFileAi,
-  IconFileDescription,
-  IconFileWord,
-  IconFolder,
-  IconHelp,
-  IconInnerShadowTop,
-  IconListDetails,
-  IconReport,
-  IconSearch,
-  IconSettings,
-  IconUsers,
+  IconHome,
+  IconUser,
+  IconCalendarMonth,
+  IconTargetArrow,
+  IconActivity,
+  IconTrophy,
 } from "@tabler/icons-react"
 
-import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -31,121 +19,41 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarRail,
+  SidebarSeparator,
 } from "@/components/ui/sidebar"
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
-      title: "Dashboard",
-      url: "#",
-      icon: IconDashboard,
+      title: "Feed",
+      url: "/dashboard",
+      icon: IconHome,
     },
     {
-      title: "Lifecycle",
-      url: "#",
-      icon: IconListDetails,
+      title: "Profile",
+      url: "/dashboard/profile",
+      icon: IconUser,
     },
     {
-      title: "Analytics",
-      url: "#",
-      icon: IconChartBar,
+      title: "Semester Plan",
+      url: "/semester-plan",
+      icon: IconCalendarMonth,
     },
     {
-      title: "Projects",
-      url: "#",
-      icon: IconFolder,
+      title: "Activity Center",
+      url: "/dashboard/activity-center",
+      icon: IconTargetArrow,
     },
     {
-      title: "Team",
-      url: "#",
-      icon: IconUsers,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: IconCamera,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
+      title: "My Current Activities",
+      url: "/dashboard/my-activities",
+      icon: IconActivity,
     },
     {
-      title: "Proposal",
-      icon: IconFileDescription,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: IconFileAi,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: IconSettings,
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: IconHelp,
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: IconSearch,
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: IconDatabase,
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: IconReport,
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: IconFileWord,
+      title: "Leaderboard",
+      url: "/dashboard/leaderboard",
+      icon: IconTrophy,
     },
   ],
 }
@@ -153,29 +61,49 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
+      {/* Sidebar Header — Branding */}
+      <SidebarHeader className="p-4">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
               asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
+              size="lg"
+              className="data-[slot=sidebar-menu-button]:!p-2"
             >
-              <a href="#">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+              <a href="/dashboard" className="flex items-center gap-3">
+                <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
+                  <img
+                    src="/images/sathyabama-logo.png"
+                    alt="Sathyabama Logo"
+                    className="size-6 rounded object-contain"
+                  />
+                </div>
+                <div className="flex flex-col gap-0.5 leading-none">
+                  <span className="font-semibold text-sm">SkillStack</span>
+                  <span className="text-xs text-muted-foreground">Sathyabama University</span>
+                </div>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
+      <SidebarSeparator />
+
+      {/* Sidebar Content — Nav Links */}
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
+
+      {/* Sidebar Footer */}
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <SidebarSeparator />
+        <div className="p-2 text-xs text-muted-foreground text-center">
+          © 2026 Sathyabama University
+        </div>
       </SidebarFooter>
+
+      <SidebarRail />
     </Sidebar>
   )
 }

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ClipboardList, Plus, Minus } from "lucide-react"
+import { ClipboardList, Plus, Minus, X, Trash2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,6 +14,18 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+] as const
 
 // ─── Activity definitions ──────────────────────────────────────────
 const ACTIVITIES = [
@@ -51,57 +63,89 @@ const ACTIVITIES = [
 ] as const
 
 type ActivityCount = Record<string, number>
+type ActivityMonths = Record<string, string[]>
+
+type DraftedActivity = {
+  id: string; // unique id for removal
+  activityName: string;
+  month: string;
+  tokensEach: number;
+}
 
 export default function SemesterPlanPage() {
-  const [savedPlan, setSavedPlan] = useState<ActivityCount | null>(null)
+  const [savedPlan, setSavedPlan] = useState<DraftedActivity[] | null>(null)
+  
+  // Sheet state
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [counts, setCounts] = useState<ActivityCount>(() =>
-    Object.fromEntries(ACTIVITIES.map((a) => [a.name, 0]))
-  )
+  const [draftedActivities, setDraftedActivities] = useState<DraftedActivity[]>([])
+  
+  // Form state
+  const [selectedActivity, setSelectedActivity] = useState<string>("")
+  const [selectedMonth, setSelectedMonth] = useState<string>("")
 
-  // ─── Counter helpers ───────────────────────────────────────────────
-  function increment(name: string) {
-    setCounts((prev) => ({ ...prev, [name]: (prev[name] ?? 0) + 1 }))
-  }
-  function decrement(name: string) {
-    setCounts((prev) => ({
-      ...prev,
-      [name]: Math.max(0, (prev[name] ?? 0) - 1),
-    }))
+  // Calculate tokens
+  const totalTokens = draftedActivities.reduce((sum, a) => sum + a.tokensEach, 0)
+  const savedTotalTokens = savedPlan?.reduce((sum, a) => sum + a.tokensEach, 0) || 0
+
+  // ─── Draft Add / Remove ───────────────────────────────────────────────
+  function handleAddActivity() {
+    if (!selectedActivity || !selectedMonth) return
+    
+    const activityDef = ACTIVITIES.find(a => a.name === selectedActivity)
+    if (!activityDef) return
+
+    const newActivity: DraftedActivity = {
+      id: crypto.randomUUID(),
+      activityName: selectedActivity,
+      month: selectedMonth,
+      tokensEach: activityDef.tokensEach
+    }
+
+    setDraftedActivities((prev) => [...prev, newActivity])
+    setSelectedActivity("")
+    setSelectedMonth("")
   }
 
-  const totalTokens = ACTIVITIES.reduce(
-    (sum, a) => sum + (counts[a.name] ?? 0) * a.tokensEach,
-    0
-  )
+  function handleRemoveActivity(id: string) {
+    setDraftedActivities((prev) => prev.filter(a => a.id !== id))
+  }
 
   // ─── Save handler ──────────────────────────────────────────────────
   function handleSavePlan() {
-    // Only save activities with count > 0
-    const plan: ActivityCount = {}
-    for (const a of ACTIVITIES) {
-      if ((counts[a.name] ?? 0) > 0) {
-        plan[a.name] = counts[a.name]
-      }
+    if (draftedActivities.length > 0) {
+      setSavedPlan([...draftedActivities])
+    } else {
+      setSavedPlan(null)
     }
-    setSavedPlan(Object.keys(plan).length > 0 ? plan : null)
     setSheetOpen(false)
   }
 
-  // ─── Open sheet (for editing existing plan too) ────────────────────
+  // ─── Open sheet ────────────────────────────────────────────────────
   function handleOpenSheet() {
     if (savedPlan) {
-      // Pre-fill with saved plan
-      setCounts(
-        Object.fromEntries(
-          ACTIVITIES.map((a) => [a.name, savedPlan[a.name] ?? 0])
-        )
-      )
+      // Load saved activities into draft
+      setDraftedActivities([...savedPlan])
     } else {
-      setCounts(Object.fromEntries(ACTIVITIES.map((a) => [a.name, 0])))
+      setDraftedActivities([])
     }
+    setSelectedActivity("")
+    setSelectedMonth("")
     setSheetOpen(true)
   }
+  
+  // Helper to group saved plan by activity name for the dashboard view
+  const groupedSavedPlan = savedPlan?.reduce((acc, curr) => {
+    if (!acc[curr.activityName]) {
+      acc[curr.activityName] = { 
+        count: 0, 
+        tokensEach: curr.tokensEach, 
+        months: [] 
+      };
+    }
+    acc[curr.activityName].count += 1;
+    acc[curr.activityName].months.push(curr.month);
+    return acc;
+  }, {} as Record<string, { count: number, tokensEach: number, months: string[] }>) || {};
 
   // ─── Render ────────────────────────────────────────────────────────
   return (
@@ -133,36 +177,45 @@ export default function SemesterPlanPage() {
         /* ── Saved plan cards ─────────────────────────────────────── */
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {ACTIVITIES.filter((a) => (savedPlan[a.name] ?? 0) > 0).map((a) => (
+            {Object.entries(groupedSavedPlan).map(([activityName, data]) => (
               <Card 
-                key={a.name} 
+                key={activityName} 
                 className="group relative overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm transition-all hover:bg-card hover:shadow-md"
               >
                 <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary/40 to-primary/80 transition-all group-hover:from-primary/60 group-hover:to-primary" />
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base font-semibold leading-tight text-foreground/90 group-hover:text-foreground">
-                    {a.name}
+                    {activityName}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="flex items-end justify-between">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-3xl font-bold tracking-tighter text-foreground">
-                        {savedPlan[a.name]}
+                        {data.count}
                       </span>
                       <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        {savedPlan[a.name] > 1 ? "activities" : "activity"}
+                        {data.count > 1 ? "activities" : "activity"}
                       </span>
                     </div>
                     <div className="flex flex-col items-end gap-1.5">
                       <Badge variant="secondary" className="bg-primary/10 text-primary hover:bg-primary/20 shrink-0 shadow-none border-0">
-                        {a.tokensEach} tokens each
+                        {data.tokensEach} tokens each
                       </Badge>
                       <span className="text-sm font-semibold text-muted-foreground/80">
-                        = {savedPlan[a.name] * a.tokensEach} pts
+                        = {data.count * data.tokensEach} pts
                       </span>
                     </div>
                   </div>
+                  {data.months.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                      {data.months.map((m, i) => (
+                        <span key={i} className="inline-flex items-center rounded-full bg-muted/50 px-2.5 py-0.5 border border-border/50">
+                          {m || "Unscheduled"}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}
@@ -184,20 +237,14 @@ export default function SemesterPlanPage() {
               <div className="flex items-center gap-4">
                 <div className="flex flex-col items-end gap-1">
                   <Badge className="bg-primary text-primary-foreground shadow-md px-3 py-1 text-sm">
-                    {ACTIVITIES.reduce(
-                      (sum, a) => sum + (savedPlan[a.name] ?? 0) * a.tokensEach,
-                      0
-                    ) >= 16 ? "Requirement Met" : "More Needed"}
+                    {savedTotalTokens >= 16 ? "Requirement Met" : "More Needed"}
                   </Badge>
                   <span className="text-xs font-medium text-primary/60">
                     Total Tokens
                   </span>
                 </div>
                 <span className="text-5xl font-extrabold tracking-tighter text-primary">
-                  {ACTIVITIES.reduce(
-                    (sum, a) => sum + (savedPlan[a.name] ?? 0) * a.tokensEach,
-                    0
-                  )}
+                  {savedTotalTokens}
                 </span>
               </div>
             </div>
@@ -216,46 +263,83 @@ export default function SemesterPlanPage() {
             </SheetDescription>
           </SheetHeader>
 
-          {/* Activity list (scrollable) */}
-          <div className="flex-1 overflow-y-auto w-full">
-            <div className="px-6 pb-2">
-              {ACTIVITIES.map((activity, idx) => (
-                <div key={activity.name}>
-                  <div className="flex items-center justify-between py-4 gap-4">
-                    <div className="flex flex-col gap-0.5 min-w-0">
-                      <span className="font-semibold text-sm">
-                        {activity.name}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        {activity.tokensEach} Tokens each
-                      </span>
+          {/* Activity Form */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 border-b px-6 pb-6">
+            <Select value={selectedActivity} onValueChange={setSelectedActivity}>
+              <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectValue placeholder="Activity..." />
+              </SelectTrigger>
+              <SelectContent>
+                {ACTIVITIES.map((a) => (
+                  <SelectItem key={a.name} value={a.name}>
+                    <div className="flex w-full items-center justify-between gap-4">
+                      <span className="truncate">{a.name}</span>
+                      <span className="text-muted-foreground font-normal shrink-0">{a.tokensEach} tokens</span>
                     </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 rounded-full"
-                        onClick={() => decrement(activity.name)}
-                        disabled={counts[activity.name] === 0}
-                      >
-                        <Minus className="h-3.5 w-3.5" />
-                      </Button>
-                      <span className="w-6 text-center font-semibold tabular-nums">
-                        {counts[activity.name]}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className="h-8 w-8 rounded-full"
-                        onClick={() => increment(activity.name)}
-                      >
-                        <Plus className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                  {idx < ACTIVITIES.length - 1 && <Separator />}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-full sm:w-[130px]">
+                <SelectValue placeholder="Month..." />
+              </SelectTrigger>
+              <SelectContent>
+                {MONTHS.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button 
+              className="w-full sm:w-auto shrink-0 gap-1.5"
+              disabled={!selectedActivity || !selectedMonth}
+              onClick={handleAddActivity}
+            >
+              <Plus className="h-4 w-4" />
+              Add
+            </Button>
+          </div>
+
+          {/* Drafted list (scrollable) */}
+          <div className="flex-1 overflow-y-auto w-full bg-muted/20">
+            <div className="px-6 py-4 flex flex-col gap-3">
+              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider mb-2">
+                Added Activities
+              </h3>
+              
+              {draftedActivities.length === 0 ? (
+                <div className="text-sm text-center text-muted-foreground py-8 border border-dashed rounded-lg">
+                  No activities added yet.
                 </div>
-              ))}
+              ) : (
+                draftedActivities.map((draft) => (
+                  <div 
+                    key={draft.id} 
+                    className="flex items-center justify-between p-3 bg-card border rounded-lg shadow-sm"
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <span className="font-semibold text-sm truncate">{draft.activityName}</span>
+                      <Badge variant="secondary" className="px-1.5 py-0 shadow-none font-normal text-[10px] shrink-0">
+                        {draft.month}
+                      </Badge>
+                      <span className="text-xs text-muted-foreground ml-auto shrink-0">{draft.tokensEach} tokens</span>
+                    </div>
+                    
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleRemoveActivity(draft.id)}
+                      className="text-muted-foreground hover:text-destructive h-8 w-8 shrink-0"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 
