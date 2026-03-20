@@ -13,3 +13,6 @@ export const userAtom = atom<User | null>(null)
 
 // Auth loading state for showing spinners
 export const authLoadingAtom = atom<boolean>(false)
+
+// Token state
+export const tokenAtom = atom<string | null>(null)
