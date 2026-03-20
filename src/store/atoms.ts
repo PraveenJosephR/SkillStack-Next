@@ -17,3 +17,5 @@ export const userAtom = atomWithStorage<User | null>("skillstack_user", null)
 
 export const tokenAtom = atomWithStorage<string | null>("skillstack_token", null)
 
+// Auth loading state for showing spinners
+export const authLoadingAtom = atom<boolean>(false)
