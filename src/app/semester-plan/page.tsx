@@ -4,7 +4,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
-import { SemesterPlanClient } from "./semester-plan-client"
+import { Cards } from "./cards"
 
 export default function SemesterPlanPage() {
   return (
@@ -22,7 +22,7 @@ export default function SemesterPlanPage() {
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-6 py-4 px-4 md:py-6 lg:px-6">
-              <SemesterPlanClient />
+              <Cards />
             </div>
           </div>
         </div>
