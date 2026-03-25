@@ -1,11 +1,9 @@
 "use client"
 
-import { useAtom } from "jotai"
 import { useRouter } from "next/navigation"
 import { LogOut } from "lucide-react"
 import { useState, useEffect } from "react"
 
-import { userAtom } from "@/store/atoms"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ModeToggle } from "@/components/theme-toggle"
@@ -18,9 +16,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+interface UserData{
+  name:string;
+  picture:string;
+  email?:string;
+}
+const defaultData = {
+  name: "Praveen Joseph",
+  picture: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSVR3TjkaFI32k7M8OGMye32jOxry45evTmjw&s",
+  email: "pj.ratniah@gmail.com"
+}
 
 export function SiteHeader() {
-  const [user, setUser] = useAtom(userAtom)
+  const [user, setUser] = useState<UserData|null>(defaultData)
   const [isMounted, setIsMounted] = useState(false)
   const router = useRouter()
 

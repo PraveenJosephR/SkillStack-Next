@@ -6,7 +6,8 @@ import { ClipboardList, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
+import { useRecoilState } from "recoil";
+import { semplanDrawerOpenState } from "@/store/atoms";
 import { Sidebar } from "./sheet";
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -18,7 +19,6 @@ export type DraftedActivity = {
 };
 
 type SemesterPlanState = {
-  open: boolean;
   draftedActivities: DraftedActivity[];
   selectedActivity: string;
   selectedMonth: string;
@@ -27,8 +27,8 @@ type SemesterPlanState = {
 
 // ─── Component ──────────────────────────────────────────────────────
 export function Cards() {
+   const [open, setOpen] = useRecoilState(semplanDrawerOpenState);
   const [state, setState] = useState<SemesterPlanState>({
-    open: false,
     draftedActivities: [],
     selectedActivity: "",
     selectedMonth: "",
@@ -46,13 +46,12 @@ export function Cards() {
       draftedActivities: prev.savedPlan ? [...prev.savedPlan] : [],
       selectedActivity: "",
       selectedMonth: "",
-      open: true,
+      
     }));
+    setOpen(true);
   }
 
-  function setOpen(open: boolean) {
-    setState((prev) => ({ ...prev, open }));
-  }
+
 
   function setDraftedActivities(
     updater: (prev: DraftedActivity[]) => DraftedActivity[]
@@ -212,7 +211,6 @@ export function Cards() {
       {/* Sheet */}
       <Sidebar
         state={state}
-        setOpen={setOpen}
         setDraftedActivities={setDraftedActivities}
         setSelectedActivity={setSelectedActivity}
         setSelectedMonth={setSelectedMonth}

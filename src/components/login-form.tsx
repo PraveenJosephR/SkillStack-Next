@@ -1,12 +1,8 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { useAtom } from "jotai"
 import { useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
-
-import { userAtom, authLoadingAtom } from "@/store/atoms"
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -23,6 +19,16 @@ declare global {
     google: any
   }
 }
+interface UserData{
+  name:string;
+  picture:string;
+  email?:string;
+}
+const defaultData = {
+  name: "Praveen Joseph",
+  picture: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSVR3TjkaFI32k7M8OGMye32jOxry45evTmjw&s",
+  email: "pj.ratniah@gmail.com"
+}
 
 export function LoginForm({
   className,
@@ -31,8 +37,8 @@ export function LoginForm({
   const router = useRouter()
 
   // Jotai state
-  const [user, setUser] = useAtom(userAtom)
-  const [loading, setLoading] = useAtom(authLoadingAtom)
+  const [user, setUser] = useState<UserData|null>(defaultData)
+  const [loading, setLoading] = useState<boolean>(false)
 
   // Local form state
   const [email, setEmail] = useState("")

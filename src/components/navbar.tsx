@@ -1,10 +1,8 @@
 "use client"
 
-import { useAtom } from "jotai"
 import { useRouter } from "next/navigation"
 import { LogOut, User } from "lucide-react"
-
-import { userAtom } from "@/store/atoms"
+import { useState } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -14,9 +12,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+interface UserData{
+  name:string;
+  picture:string;
+  email?:string;
+
+}
+const dafaultData: UserData={
+name:"Praveen Joseph",
+picture:"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSVR3TjkaFI32k7M8OGMye32jOxry45evTmjw&s",
+email:"pj.ratniah@gmail.com"
+}
 
 export function Navbar() {
-  const [user, setUser] = useAtom(userAtom)
+  const [user, setUser] = useState<UserData | null>(dafaultData)
   const router = useRouter()
 
   function handleSignOut() {

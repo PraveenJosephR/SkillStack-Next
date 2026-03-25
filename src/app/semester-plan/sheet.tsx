@@ -5,6 +5,8 @@ import { Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useRecoilState } from "recoil";
+import { semplanDrawerOpenState } from "@/store/atoms";
 import {
   Sheet,
   SheetContent,
@@ -61,13 +63,11 @@ const ACTIVITIES = [
 
 type SemesterPlanClientProps = {
   state: {
-    open: boolean;
     draftedActivities: DraftedActivity[];
     selectedActivity: string;
     selectedMonth: string;
     savedPlan: DraftedActivity[] | null;
   };
-  setOpen: (open: boolean) => void;
   setDraftedActivities: (updater: (prev: DraftedActivity[]) => DraftedActivity[]) => void;
   setSelectedActivity: (value: string) => void;
   setSelectedMonth: (value: string) => void;
@@ -76,7 +76,6 @@ type SemesterPlanClientProps = {
 
 export function Sidebar({
   state,
-  setOpen,
   setDraftedActivities,
   setSelectedActivity,
   setSelectedMonth,
@@ -84,6 +83,7 @@ export function Sidebar({
 }: SemesterPlanClientProps) {
   // Total tokens
   const totalTokens = state.draftedActivities.reduce((sum, a) => sum + a.tokensEach, 0);
+  const [open, setOpen] = useRecoilState(semplanDrawerOpenState);
 
   // ─── Handlers ─────────────────────────────────────────────
   function handleAddActivity() {
@@ -115,7 +115,7 @@ export function Sidebar({
 
   // ─── Render ──────────────────────────────────────────────
   return (
-    <Sheet open={state.open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent className="flex flex-col sm:max-w-lg p-0">
         <SheetHeader className="p-6 pb-4 pr-12">
           <SheetTitle className="text-xl">Plan Activities</SheetTitle>
