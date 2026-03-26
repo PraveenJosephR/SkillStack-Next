@@ -32,27 +32,10 @@ export function Cards() {
   function openSheet() {
     setDraftedActivities(savedPlan ? [...savedPlan] : [])
     setSelectedActivity("")
-    setSelectedMonth("")
+    setSelectedMonth(null)
     setOpen(prev=>!prev);
   }
 
-
-  // wrappers for compatibility with previous API (sheet used these setter names)
-  function updateDraftedActivities(updater: (prev: DraftedActivity[]) => DraftedActivity[]) {
-    setDraftedActivities(prev => updater(prev))
-  }
-
-  function updateSetSelectedActivity(value: string) {
-    setSelectedActivity(value)
-  }
-
-  function updateSetSelectedMonth(value: string) {
-    setSelectedMonth(value)
-  }
-
-  function updateSetSavedPlan(plan: DraftedActivity[] | null) {
-    setSavedPlan(plan)
-  }
 
   // ─── Grouped data for UI ──────────────────────────────────────────
   const groupedSavedPlan =

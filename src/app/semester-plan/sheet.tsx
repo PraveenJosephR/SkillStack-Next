@@ -72,7 +72,7 @@ export function Sidebar() {
 
   // ─── Handlers ─────────────────────────────────────────────
   function handleAddActivity() {
-    if (!selectedActivity || !selectedMonth) return;
+    if (!selectedActivity || selectedMonth == null) return;
 
     const activityDef = ACTIVITIES.find(a => a.name === selectedActivity);
     if (!activityDef) return;
@@ -80,13 +80,13 @@ export function Sidebar() {
     const newActivity: DraftedActivity = {
       id: crypto.randomUUID(),
       activityName: selectedActivity,
-      month: Number(selectedMonth),
+      month: selectedMonth as number,
       tokensEach: activityDef.tokensEach,
     };
 
     setDraftedActivities(prev => [...prev, newActivity]);
     setSelectedActivity("");
-    setSelectedMonth("");
+    setSelectedMonth(null);
   }
 
   function handleRemoveActivity(id: string) {
@@ -127,7 +127,7 @@ export function Sidebar() {
             </SelectContent>
           </Select>
 
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+            <Select value={selectedMonth != null ? String(selectedMonth) : ""} onValueChange={(v) => setSelectedMonth(Number(v))}>
             <SelectTrigger className="w-full sm:w-[130px]">
               <SelectValue placeholder="Month..." />
             </SelectTrigger>
@@ -140,7 +140,7 @@ export function Sidebar() {
 
           <Button
             className="w-full sm:w-auto gap-1.5"
-            disabled={!selectedActivity || !selectedMonth}
+            disabled={!selectedActivity || selectedMonth == null}
             onClick={handleAddActivity}
           >
             <Plus className="h-4 w-4" /> Add

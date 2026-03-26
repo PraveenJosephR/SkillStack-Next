@@ -44,5 +44,6 @@ export type DraftedActivity = {
 // Drafts and selection atoms for semester plan UI
 export const draftedActivitiesAtom = atom<DraftedActivity[]>([])
 export const selectedActivityAtom = atom<string>("")
-export const selectedMonthAtom = atom<string>("")
+// selectedMonthAtom stores numeric month value (1-12) or null when not selected
+export const selectedMonthAtom = atom<number | null>(null)
 export const savedPlanAtom = atom<DraftedActivity[] | null>(null)
