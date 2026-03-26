@@ -171,8 +171,6 @@ export function Cards() {
         </div>
       )}
 
-      {/* Sheet */}
-      <Sidebar />
     </>
   );
 }
