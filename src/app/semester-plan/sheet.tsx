@@ -1,11 +1,14 @@
 "use client";
 
-import { DraftedActivity } from "./cards";
+import { DraftedActivity, draftedActivitiesAtom, selectedActivityAtom, selectedMonthAtom, savedPlanAtom } from "@/store/atoms";
 import { Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { semPlanDrawerOpen, monthsAtom } from "@/store/atoms";
 import { Badge } from "@/components/ui/badge";
+import { useAtom } from "jotai";
 import {
+
   Sheet,
   SheetContent,
   SheetHeader,
@@ -20,10 +23,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const MONTHS = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
-] as const;
 
 const ACTIVITIES = [
   { name: "NPTEL-Pass", tokensEach: 2 },
@@ -59,43 +58,29 @@ const ACTIVITIES = [
   { name: "CGPA 8.5 And Above", tokensEach: 4 },
 ] as const;
 
-type SemesterPlanClientProps = {
-  state: {
-    open: boolean;
-    draftedActivities: DraftedActivity[];
-    selectedActivity: string;
-    selectedMonth: string;
-    savedPlan: DraftedActivity[] | null;
-  };
-  setOpen: (open: boolean) => void;
-  setDraftedActivities: (updater: (prev: DraftedActivity[]) => DraftedActivity[]) => void;
-  setSelectedActivity: (value: string) => void;
-  setSelectedMonth: (value: string) => void;
-  setSavedPlan: (plan: DraftedActivity[] | null) => void;
-};
 
-export function Sidebar({
-  state,
-  setOpen,
-  setDraftedActivities,
-  setSelectedActivity,
-  setSelectedMonth,
-  setSavedPlan,
-}: SemesterPlanClientProps) {
+
+export function Sidebar() {
   // Total tokens
-  const totalTokens = state.draftedActivities.reduce((sum, a) => sum + a.tokensEach, 0);
+     const [open, setOpen] = useAtom(semPlanDrawerOpen)
+  const [months] = useAtom(monthsAtom)
+  const [draftedActivities, setDraftedActivities] = useAtom(draftedActivitiesAtom)
+  const [selectedActivity, setSelectedActivity] = useAtom(selectedActivityAtom)
+  const [selectedMonth, setSelectedMonth] = useAtom(selectedMonthAtom)
+  const [savedPlan, setSavedPlan] = useAtom(savedPlanAtom)
+  const totalTokens = draftedActivities.reduce((sum, a) => sum + a.tokensEach, 0);
 
   // ─── Handlers ─────────────────────────────────────────────
   function handleAddActivity() {
-    if (!state.selectedActivity || !state.selectedMonth) return;
+    if (!selectedActivity || !selectedMonth) return;
 
-    const activityDef = ACTIVITIES.find(a => a.name === state.selectedActivity);
+    const activityDef = ACTIVITIES.find(a => a.name === selectedActivity);
     if (!activityDef) return;
 
     const newActivity: DraftedActivity = {
       id: crypto.randomUUID(),
-      activityName: state.selectedActivity,
-      month: state.selectedMonth,
+      activityName: selectedActivity,
+      month: Number(selectedMonth),
       tokensEach: activityDef.tokensEach,
     };
 
@@ -109,13 +94,13 @@ export function Sidebar({
   }
 
   function handleSavePlan() {
-    setSavedPlan(state.draftedActivities.length > 0 ? [...state.draftedActivities] : null);
+    setSavedPlan(draftedActivities.length > 0 ? [...draftedActivities] : null);
     setOpen(false);
   }
 
   // ─── Render ──────────────────────────────────────────────
   return (
-    <Sheet open={state.open} onOpenChange={setOpen}>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetContent className="flex flex-col sm:max-w-lg p-0">
         <SheetHeader className="p-6 pb-4 pr-12">
           <SheetTitle className="text-xl">Plan Activities</SheetTitle>
@@ -126,7 +111,7 @@ export function Sidebar({
 
         {/* Form */}
         <div className="flex flex-col sm:flex-row items-center gap-3 border-b px-6 pb-6">
-          <Select value={state.selectedActivity} onValueChange={setSelectedActivity}>
+          <Select value={selectedActivity} onValueChange={setSelectedActivity}>
             <SelectTrigger className="w-full sm:w-[220px]">
               <SelectValue placeholder="Activity..." />
             </SelectTrigger>
@@ -142,20 +127,20 @@ export function Sidebar({
             </SelectContent>
           </Select>
 
-          <Select value={state.selectedMonth} onValueChange={setSelectedMonth}>
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
             <SelectTrigger className="w-full sm:w-[130px]">
               <SelectValue placeholder="Month..." />
             </SelectTrigger>
             <SelectContent>
-              {MONTHS.map(m => (
-                <SelectItem key={m} value={m}>{m}</SelectItem>
+              {months.map(m => (
+                <SelectItem key={m.value} value={String(m.value)}>{m.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
 
           <Button
             className="w-full sm:w-auto gap-1.5"
-            disabled={!state.selectedActivity || !state.selectedMonth}
+            disabled={!selectedActivity || !selectedMonth}
             onClick={handleAddActivity}
           >
             <Plus className="h-4 w-4" /> Add
@@ -169,12 +154,12 @@ export function Sidebar({
               Added Activities
             </h3>
 
-            {state.draftedActivities.length === 0 ? (
+            {draftedActivities.length === 0 ? (
               <div className="text-sm text-center text-muted-foreground py-8 border border-dashed rounded-lg">
                 No activities added yet.
               </div>
             ) : (
-              state.draftedActivities.map(draft => (
+              draftedActivities.map(draft => (
                 <div
                   key={draft.id}
                   className="flex items-center justify-between p-3 bg-card border rounded-lg shadow-sm"
@@ -182,7 +167,7 @@ export function Sidebar({
                   <div className="flex items-center gap-3 min-w-0 flex-1">
                     <span className="font-semibold text-sm truncate">{draft.activityName}</span>
                     <Badge variant="secondary" className="px-1.5 py-0 shadow-none text-[10px]">
-                      {draft.month}
+                      {months.find(x => x.value === draft.month)?.name || String(draft.month)}
                     </Badge>
                     <span className="text-xs text-muted-foreground ml-auto shrink-0">
                       {draft.tokensEach} tokens

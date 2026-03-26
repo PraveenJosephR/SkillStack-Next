@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { ClipboardList, Plus } from "lucide-react";
-import { userAtom, authLoadingAtom } from "@/store/atoms";
+import { userAtom, authLoadingAtom,semPlanDrawerOpen, monthsAtom, draftedActivitiesAtom, selectedActivityAtom, selectedMonthAtom, savedPlanAtom, DraftedActivity } from "@/store/atoms";
 import { useAtom } from "jotai";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,90 +10,64 @@ import { Badge } from "@/components/ui/badge";
 
 import { Sidebar } from "./sheet";
 
-// ─── Types ──────────────────────────────────────────────────────────
-export type DraftedActivity = {
-  id: string;
-  activityName: string;
-  month: string;
-  tokensEach: number;
-};
-
-type SemesterPlanState = {
-  open: boolean;
-  draftedActivities: DraftedActivity[];
-  selectedActivity: string;
-  selectedMonth: string;
-  savedPlan: DraftedActivity[] | null;
-};
 
 // ─── Component ──────────────────────────────────────────────────────
 export function Cards() {
    const [user, setUser] = useAtom(userAtom)
-  const [state, setState] = useState<SemesterPlanState>({
-    open: false,
-    draftedActivities: [],
-    selectedActivity: "",
-    selectedMonth: "",
-    savedPlan: null,
-  });
+   const [open, setOpen] = useAtom(semPlanDrawerOpen)
+  const [months] = useAtom(monthsAtom)
+  const [draftedActivities, setDraftedActivities] = useAtom(draftedActivitiesAtom)
+  const [selectedActivity, setSelectedActivity] = useAtom(selectedActivityAtom)
+  const [selectedMonth, setSelectedMonth] = useAtom(selectedMonthAtom)
+  const [savedPlan, setSavedPlan] = useAtom(savedPlanAtom)
   useEffect(() => {
     console.log("user:",user)
   },[])
 
   // ─── Derived values ───────────────────────────────────────────────
   const savedTotalTokens =
-    state.savedPlan?.reduce((sum, a) => sum + a.tokensEach, 0) || 0;
+    savedPlan?.reduce((sum, a) => sum + a.tokensEach, 0) || 0;
 
   // ─── Actions ─────────────────────────────────────────────────────
   function openSheet() {
-    setState((prev) => ({
-      ...prev,
-      draftedActivities: prev.savedPlan ? [...prev.savedPlan] : [],
-      selectedActivity: "",
-      selectedMonth: "",
-      open: true,
-    }));
+    setDraftedActivities(savedPlan ? [...savedPlan] : [])
+    setSelectedActivity("")
+    setSelectedMonth("")
+    setOpen(prev=>!prev);
   }
 
-  function setOpen(open: boolean) {
-    setState((prev) => ({ ...prev, open }));
+
+  // wrappers for compatibility with previous API (sheet used these setter names)
+  function updateDraftedActivities(updater: (prev: DraftedActivity[]) => DraftedActivity[]) {
+    setDraftedActivities(prev => updater(prev))
   }
 
-  function setDraftedActivities(
-    updater: (prev: DraftedActivity[]) => DraftedActivity[]
-  ) {
-    setState((prev) => ({
-      ...prev,
-      draftedActivities: updater(prev.draftedActivities),
-    }));
+  function updateSetSelectedActivity(value: string) {
+    setSelectedActivity(value)
   }
 
-  function setSelectedActivity(value: string) {
-    setState((prev) => ({ ...prev, selectedActivity: value }));
+  function updateSetSelectedMonth(value: string) {
+    setSelectedMonth(value)
   }
 
-  function setSelectedMonth(value: string) {
-    setState((prev) => ({ ...prev, selectedMonth: value }));
-  }
-
-  function setSavedPlan(plan: DraftedActivity[] | null) {
-    setState((prev) => ({ ...prev, savedPlan: plan }));
+  function updateSetSavedPlan(plan: DraftedActivity[] | null) {
+    setSavedPlan(plan)
   }
 
   // ─── Grouped data for UI ──────────────────────────────────────────
   const groupedSavedPlan =
-    state.savedPlan?.reduce((acc, curr) => {
+    savedPlan?.reduce((acc, curr) => {
       if (!acc[curr.activityName]) {
         acc[curr.activityName] = {
           count: 0,
           tokensEach: curr.tokensEach,
-          months: [] as string[],
+          months: [] as number[],
         };
       }
       acc[curr.activityName].count += 1;
       acc[curr.activityName].months.push(curr.month);
       return acc;
-    }, {} as Record<string, { count: number; tokensEach: number; months: string[] }>) ||
+      }, {} as Record<string, { count: number; tokensEach: number; months: number[] }>) ||
     {};
 
   // ─── Render ──────────────────────────────────────────────────────
@@ -107,12 +81,12 @@ export function Cards() {
 
         <Button onClick={openSheet} className="gap-1.5">
           <Plus className="h-4 w-4" />
-          {state.savedPlan ? "Edit Plan" : "Create Plan"}
+          {savedPlan ? "Edit Plan" : "Create Plan"}
         </Button>
       </div>
 
       {/* Content */}
-      {!state.savedPlan ? (
+      {!savedPlan ? (
         <Card className="flex flex-col items-center justify-center py-20">
           <CardContent className="flex flex-col items-center gap-4 text-center">
             <div className="rounded-full bg-muted p-4">
@@ -158,7 +132,7 @@ export function Cards() {
                           {data.tokensEach} tokens each
                         </Badge>
                         <span className="text-sm text-muted-foreground">
-                          = {data.count * data.tokensEach} pts
+                         {data.count * data.tokensEach} pts
                         </span>
                       </div>
                     </div>
@@ -170,7 +144,7 @@ export function Cards() {
                             key={i}
                             className="inline-flex items-center rounded-full bg-muted/50 px-2.5 py-0.5 border"
                           >
-                            {m || "Unscheduled"}
+                            {months.find(x => x.value === m)?.name || "Unscheduled"}
                           </span>
                         ))}
                       </div>
@@ -215,14 +189,7 @@ export function Cards() {
       )}
 
       {/* Sheet */}
-      <Sidebar
-        state={state}
-        setOpen={setOpen}
-        setDraftedActivities={setDraftedActivities}
-        setSelectedActivity={setSelectedActivity}
-        setSelectedMonth={setSelectedMonth}
-        setSavedPlan={setSavedPlan}
-      />
+      <Sidebar />
     </>
   );
 }
