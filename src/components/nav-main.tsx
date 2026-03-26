@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation"
 import { type Icon } from "@tabler/icons-react"
+import { useRouter } from "next/navigation"
 
 import {
   SidebarGroup,
@@ -22,6 +23,7 @@ export function NavMain({
   }[]
 }) {
   const pathname = usePathname()
+    const router = useRouter()
 
   return (
     <SidebarGroup>
@@ -37,11 +39,12 @@ export function NavMain({
                   size="lg"
                   isActive={isActive}
                   tooltip={item.title}
+                  onClick={()=>router.push(item.url)}
                 >
-                  <a href={item.url}>
+                  <div className="flex">
                     {item.icon && <item.icon className="!size-5" />}
                     <span className="text-sm font-medium">{item.title}</span>
-                  </a>
+                    </div>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )

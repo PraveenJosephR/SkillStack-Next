@@ -56,7 +56,7 @@ export function SiteHeader() {
           <img
             src="/images/sathyabama-logo.png"
             alt="Sathyabama Logo"
-            className="h-7 w-7 rounded-full object-contain"
+            className="h-7 w-7 rounded-full object-cover"
           />
           <span className="text-sm font-semibold tracking-tight hidden sm:inline">
             Sathyabama University

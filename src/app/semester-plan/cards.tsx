@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ClipboardList, Plus } from "lucide-react";
-
+import { userAtom, authLoadingAtom } from "@/store/atoms";
+import { useAtom } from "jotai";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +28,7 @@ type SemesterPlanState = {
 
 // ─── Component ──────────────────────────────────────────────────────
 export function Cards() {
+   const [user, setUser] = useAtom(userAtom)
   const [state, setState] = useState<SemesterPlanState>({
     open: false,
     draftedActivities: [],
@@ -34,6 +36,9 @@ export function Cards() {
     selectedMonth: "",
     savedPlan: null,
   });
+  useEffect(() => {
+    console.log("user:",user)
+  },[])
 
   // ─── Derived values ───────────────────────────────────────────────
   const savedTotalTokens =

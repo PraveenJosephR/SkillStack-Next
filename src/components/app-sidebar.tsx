@@ -32,7 +32,7 @@ const data = {
     },
     {
       title: "Profile",
-      url: "/dashboard/profile",
+      url: "/wip",
       icon: IconUser,
     },
     {
@@ -42,17 +42,17 @@ const data = {
     },
     {
       title: "Activity Center",
-      url: "/dashboard/activity-center",
+      url: "/wip",
       icon: IconTargetArrow,
     },
     {
       title: "My Current Activities",
-      url: "/dashboard/my-activities",
+      url: "/wip",
       icon: IconActivity,
     },
     {
       title: "Leaderboard",
-      url: "/dashboard/leaderboard",
+      url: "/wip",
       icon: IconTrophy,
     },
   ],
@@ -71,7 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-2"
             >
               <a href="/dashboard" className="flex items-center gap-3">
-                <div className="flex size-8 items-center justify-center rounded-lg bg-primary">
+                <div className="flex size-8 items-center justify-center rounded-lg bg-white">
                   <img
                     src="/images/sathyabama-logo.png"
                     alt="Sathyabama Logo"
