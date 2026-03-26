@@ -42,7 +42,7 @@ const data = {
     },
     {
       title: "Activity Center",
-      url: "/wip",
+      url: "/activity",
       icon: IconTargetArrow,
     },
     {
