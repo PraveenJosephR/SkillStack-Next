@@ -6,10 +6,7 @@ import Script from "next/script";
 import "./globals.css";
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar"
+import { ConditionalSidebar } from "@/components/conditional-sidebar"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -48,7 +45,7 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <SidebarProvider
+            <ConditionalSidebar
               style={
                 {
                   "--sidebar-width": "calc(var(--spacing) * 72)",
@@ -56,12 +53,8 @@ export default function RootLayout({
                 } as React.CSSProperties
               }
             >
-              <AppSidebar />
-              <SidebarInset>
-                <SiteHeader />
-                {children}
-              </SidebarInset>
-            </SidebarProvider>
+              {children}
+            </ConditionalSidebar>
           </ThemeProvider>
         </JotaiProvider>
 
