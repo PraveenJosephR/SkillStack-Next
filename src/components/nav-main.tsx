@@ -44,7 +44,7 @@ export function NavMain({
                   <div className="flex">
                     {item.icon && <item.icon className="!size-5" />}
                     <span className="text-sm font-medium">{item.title}</span>
-                    </div>
+                    </div>  
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )
