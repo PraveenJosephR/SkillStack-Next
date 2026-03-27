@@ -13,7 +13,7 @@ import activitiesData from "./data.json";
 const ROWS_TO_SHOW = 2;
 const COLS = 4;
 
-export default function SemesterCards() {
+export default function ActivityCards() {
     const [visibleCount, setVisibleCount] = useState(ROWS_TO_SHOW * COLS);
     const [searchTerm, setSearchTerm] = useState("");
     const [sortHighToLow, setSortHighToLow] = useState(true);
@@ -54,7 +54,6 @@ export default function SemesterCards() {
 
     return (
         <div>
-            <h1 className="text-2xl font-bold tracking-tight mb-5">Activity Center</h1>
 
             {/* Search + Sort */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 mb-5">

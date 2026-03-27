@@ -7,6 +7,7 @@ import "./globals.css";
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { ConditionalSidebar } from "@/components/conditional-sidebar"
+import { Toaster } from "@/components/ui/sonner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,6 +55,7 @@ export default function RootLayout({
               }
             >
               {children}
+              <Toaster richColors/>
             </ConditionalSidebar>
           </ThemeProvider>
         </JotaiProvider>

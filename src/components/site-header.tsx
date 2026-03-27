@@ -2,13 +2,14 @@
 
 import { useAtom } from "jotai"
 import { useRouter } from "next/navigation"
-import { LogOut } from "lucide-react"
+import { Coins, LogOut, Plus } from "lucide-react"
 import { useState, useEffect } from "react"
 
 import { userAtom } from "@/store/atoms"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ModeToggle } from "@/components/theme-toggle"
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -65,6 +66,11 @@ export function SiteHeader() {
 
         {/* Right side — Theme Toggle + Profile Avatar Dropdown */}
         <div className="ml-auto flex items-center gap-2">
+          <Badge className="bg-yellow-100 p-2 text-yellow-700 cursor-pointer dark:bg-yellow-900/40 dark:text-yellow-400 font-bold" onClick={()=>router.push("/activity")}>
+            <Coins strokeWidth={2.5}/>
+            18
+            <Plus strokeWidth={2.5}/>
+            </Badge>
           <ModeToggle />
 
           {isMounted ? (

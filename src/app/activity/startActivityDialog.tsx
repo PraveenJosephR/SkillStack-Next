@@ -5,6 +5,7 @@ import {
   Dialog, DialogTrigger, DialogContent, DialogHeader,
   DialogTitle, DialogDescription, DialogFooter, DialogClose
 } from "@/components/ui/dialog";
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -62,6 +63,7 @@ export default function StartActivityDialog({ title }: { title: string }) {
 
 const onSubmit = (data: FormData) => {
   console.log(data);
+  toast.success("Activity Started", { position: "bottom-right" })
   setOpen(false); // closes dialog
 };
 
