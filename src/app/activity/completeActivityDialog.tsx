@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner"
 import {
   Dialog, DialogTrigger, DialogContent, DialogHeader,
   DialogTitle, DialogDescription, DialogFooter
@@ -33,10 +34,8 @@ export default function CompleteActivityDialog({ title }: { title: string }) {
       return;
     }
 
-    // simulate upload
-    console.log("Uploaded:", file);
+    toast.success("Activity Started", { position: "bottom-right" })
 
-    // reset everything
     setFile(null);
     setPreview(null);
     setError("");

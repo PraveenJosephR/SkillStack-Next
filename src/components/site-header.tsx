@@ -2,7 +2,7 @@
 
 import { useAtom } from "jotai"
 import { useRouter } from "next/navigation"
-import { Coins, LogOut, Plus } from "lucide-react"
+import { Coins, LogOut, Plus, User } from "lucide-react"
 import { useState, useEffect } from "react"
 
 import { userAtom } from "@/store/atoms"
@@ -19,6 +19,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Button } from "./ui/button"
+import NotificationDropdown from "./notifications"
 
 export function SiteHeader() {
   const [user, setUser] = useAtom(userAtom)
@@ -72,7 +74,7 @@ export function SiteHeader() {
             <Plus strokeWidth={2.5}/>
             </Badge>
           <ModeToggle />
-
+<NotificationDropdown/>
           {isMounted ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -97,8 +99,11 @@ export function SiteHeader() {
                 </DropdownMenuLabel>
 
                 <DropdownMenuSeparator />
-
-                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+<DropdownMenuItem onClick={()=>router.push("/profile")} className="cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer ">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </DropdownMenuItem>
