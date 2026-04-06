@@ -31,18 +31,13 @@ const data = {
       icon: IconHome,
     },
     {
-      title: "Profile",
-      url: "/wip",
-      icon: IconUser,
-    },
-    {
       title: "Semester Plan",
       url: "/semester-plan",
       icon: IconCalendarMonth,
     },
     {
       title: "Activity Center",
-      url: "/wip",
+      url: "/activity",
       icon: IconTargetArrow,
     },
     {
@@ -62,28 +57,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       {/* Sidebar Header — Branding */}
-      <SidebarHeader className="p-4">
+      <SidebarHeader className="px-4">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              size="lg"
-              className="data-[slot=sidebar-menu-button]:!p-2"
-            >
-              <a href="/dashboard" className="flex items-center gap-3">
-                <div className="flex size-8 items-center justify-center rounded-lg bg-white">
-                  <img
-                    src="/images/sathyabama-logo.png"
-                    alt="Sathyabama Logo"
-                    className="size-6 rounded object-contain"
-                  />
-                </div>
-                <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold text-sm">SkillStack</span>
-                  <span className="text-xs text-muted-foreground">Sathyabama University</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
+            <div>
+            <div className="px-2">
+              <img
+                src="/images/skill-stack-logo-full-light.png"
+                alt="Logo"
+                className="w-full h-auto object-contain dark:hidden"
+              />
+            </div>
+            <div className="px-2">
+              <img
+                src="/images/skill-stack-logo-full-dark.png"
+                alt="Logo"
+                className="w-full h-auto object-contain hidden dark:block"
+              />
+            </div>
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

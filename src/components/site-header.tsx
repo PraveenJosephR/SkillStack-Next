@@ -2,13 +2,14 @@
 
 import { useAtom } from "jotai"
 import { useRouter } from "next/navigation"
-import { LogOut } from "lucide-react"
+import { Coins, LogOut, Plus, User } from "lucide-react"
 import { useState, useEffect } from "react"
 
 import { userAtom } from "@/store/atoms"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ModeToggle } from "@/components/theme-toggle"
+import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -18,6 +19,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Button } from "./ui/button"
+import NotificationDropdown from "./notifications"
 
 export function SiteHeader() {
   const [user, setUser] = useAtom(userAtom)
@@ -44,7 +47,7 @@ export function SiteHeader() {
     : "U"
 
   return (
-    <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
+    <header className="sticky top-0 z-50 flex h-(--header-height) shrink-0 items-center gap-2 border-b bg-background transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
         {/* Left side — Sidebar trigger + Logo + College Name */}
         <SidebarTrigger className="-ml-1" />
@@ -65,8 +68,13 @@ export function SiteHeader() {
 
         {/* Right side — Theme Toggle + Profile Avatar Dropdown */}
         <div className="ml-auto flex items-center gap-2">
+          <Badge className="bg-yellow-100 p-2 text-yellow-700 cursor-pointer dark:bg-yellow-900/40 dark:text-yellow-400 font-bold" onClick={()=>router.push("/activity")}>
+            <Coins strokeWidth={2.5}/>
+            18
+            <Plus strokeWidth={2.5}/>
+            </Badge>
           <ModeToggle />
-
+<NotificationDropdown/>
           {isMounted ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -91,8 +99,11 @@ export function SiteHeader() {
                 </DropdownMenuLabel>
 
                 <DropdownMenuSeparator />
-
-                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+<DropdownMenuItem onClick={()=>router.push("/profile")} className="cursor-pointer">
+                  <User className="mr-2 h-4 w-4" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer ">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </DropdownMenuItem>
