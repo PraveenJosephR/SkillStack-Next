@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   IconHome,
   IconUser,
@@ -8,9 +8,9 @@ import {
   IconTargetArrow,
   IconActivity,
   IconTrophy,
-} from "@tabler/icons-react"
+} from "@tabler/icons-react";
 
-import { NavMain } from "@/components/nav-main"
+import { NavMain } from "@/components/nav-main";
 import {
   Sidebar,
   SidebarContent,
@@ -21,7 +21,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
   SidebarSeparator,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 const data = {
   navMain: [
@@ -47,11 +47,11 @@ const data = {
     },
     {
       title: "Leaderboard",
-      url: "/wip",
+      url: "/leaderboard",
       icon: IconTrophy,
     },
   ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -61,20 +61,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem>
             <div>
-            <div className="px-2">
-              <img
-                src="/images/skill-stack-logo-full-light.png"
-                alt="Logo"
-                className="w-full h-auto object-contain dark:hidden"
-              />
-            </div>
-            <div className="px-2">
-              <img
-                src="/images/skill-stack-logo-full-dark.png"
-                alt="Logo"
-                className="w-full h-auto object-contain hidden dark:block"
-              />
-            </div>
+              <div className="px-2">
+                <img
+                  src="/images/skill-stack-logo-full-light.png"
+                  alt="Logo"
+                  className="w-full h-auto object-contain dark:hidden"
+                />
+              </div>
+              <div className="px-2">
+                <img
+                  src="/images/skill-stack-logo-full-dark.png"
+                  alt="Logo"
+                  className="w-full h-auto object-contain hidden dark:block"
+                />
+              </div>
             </div>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -97,5 +97,5 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       <SidebarRail />
     </Sidebar>
-  )
+  );
 }
