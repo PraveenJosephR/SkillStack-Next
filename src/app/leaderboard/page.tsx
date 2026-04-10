@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, Suspense, useState } from "react";
+import { useRef, Suspense, useState, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
+import { useTheme } from "next-themes"
 import {
   RoundedBox,
   Text,
@@ -502,8 +503,14 @@ function PlayerCard({
 export default function Leaderboard() {
   const [tab, setTab] = useState<"daily" | "monthly">("daily");
   const data = tab === "daily" ? dailyData : monthlyData;
+  const [isDark, setIsDark] = useState(false)
   const top3 = data.slice(0, 3); // [1st, 2nd, 3rd]
   const rest = data.slice(3);
+  const { resolvedTheme } = useTheme()
+
+  useEffect(() => {
+  setIsDark(resolvedTheme === "dark")
+}, [resolvedTheme])
 
   return (
     <div
