@@ -79,7 +79,7 @@ export function LoginForm({
         return;
       }
 
-      const servRes = await fetch("/api/v1/users/login", {
+      const servRes = await fetch(`${process.env.BACKEND_URL}/api/v1/users/login`, {
         method: "POST",
         body: JSON.stringify({ email_id: data.user.email }),
       });
