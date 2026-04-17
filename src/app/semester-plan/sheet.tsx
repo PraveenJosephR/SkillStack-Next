@@ -22,43 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useEffect, useState } from "react";
+import { accessTokenAtom } from "@/store/atoms";
 
-
-const ACTIVITIES = [
-  { name: "NPTEL-Pass", tokensEach: 2 },
-  { name: "NPTEL-Elite+Silver", tokensEach: 3 },
-  { name: "NPTEL-Elite+Gold", tokensEach: 4 },
-  { name: "Coursera", tokensEach: 4 },
-  { name: "Udemy", tokensEach: 3 },
-  { name: "Workshop", tokensEach: 2 },
-  { name: "Hackathon-Participate", tokensEach: 3 },
-  { name: "Hackathon(Internal)-Win", tokensEach: 4 },
-  { name: "Hackathon(External)-Win", tokensEach: 6 },
-  { name: "Other College Events", tokensEach: 3 },
-  { name: "Organizing Events", tokensEach: 2 },
-  { name: "Cultural", tokensEach: 3 },
-  { name: "Sports/Music", tokensEach: 3 },
-  { name: "NCC/NSS Activities", tokensEach: 3 },
-  { name: "Volunteer Activities", tokensEach: 3 },
-  { name: "Value Added Courses", tokensEach: 4 },
-  { name: "Internship-Online", tokensEach: 4 },
-  { name: "Internship-InOffice", tokensEach: 6 },
-  { name: "Certification-Internal/Local", tokensEach: 4 },
-  { name: "Certification-Global", tokensEach: 6 },
-  { name: "Research Working Prototype", tokensEach: 6 },
-  { name: "Coding-Contest-Participation", tokensEach: 3 },
-  { name: "Coding-Contest-Winner", tokensEach: 5 },
-  { name: "Research-paper", tokensEach: 4 },
-  { name: "Best Paper Award", tokensEach: 6 },
-  { name: "Research Resource Person(Internal)", tokensEach: 3 },
-  { name: "Research Resource Person(External)", tokensEach: 5 },
-  { name: "Study Abroad", tokensEach: 6 },
-  { name: "Seed Funding Project", tokensEach: 8 },
-  { name: "Startup", tokensEach: 12 },
-  { name: "CGPA 8.5 And Above", tokensEach: 4 },
-] as const;
-
-
+async function getActivities() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/goals/activities`);
+  const data = await res.json();
+  return data.map((a: any) => ({ name: a.activity_name, tokensEach: a.token }));
+}
 
 export function Sidebar() {
   // Total tokens
@@ -70,11 +41,35 @@ export function Sidebar() {
   const [savedPlan, setSavedPlan] = useAtom(savedPlanAtom)
   const totalTokens = draftedActivities.reduce((sum, a) => sum + a.tokensEach, 0);
 
+  // ─── Get Activities ─────────────────────────────────────────────
+  const [activities, setActivities] = useState<{ id: number; name: string; tokensEach: number }[]>([]);
+
+  // access token for authenticated API requests
+  const [accessToken] = useAtom(accessTokenAtom);
+  
+
+  useEffect(() => {
+    if (!accessToken) return;
+
+    async function fetchActivities() {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/goals/activities`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${accessToken}`
+        }
+      });
+      const data = await res.json();
+      setActivities(data.map((a: any) => ({ id: a.id, name: a.activity_name, tokensEach: a.token })));
+    }
+    fetchActivities();
+  }, [accessToken]);
+
   // ─── Handlers ─────────────────────────────────────────────
   function handleAddActivity() {
     if (!selectedActivity || selectedMonth == null) return;
 
-    const activityDef = ACTIVITIES.find(a => a.name === selectedActivity);
+    const activityDef = activities.find(a => a.name === selectedActivity);
     if (!activityDef) return;
 
     const newActivity: DraftedActivity = {
@@ -93,9 +88,108 @@ export function Sidebar() {
     setDraftedActivities(prev => prev.filter(a => a.id !== id));
   }
 
-  function handleSavePlan() {
-    setSavedPlan(draftedActivities.length > 0 ? [...draftedActivities] : null);
-    setOpen(false);
+  async function handleSavePlan() {
+    if (!accessToken || draftedActivities.length === 0) return;
+
+    try {
+      // Get existing goals from backend
+      const getRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/goals/`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+
+      const existingGoals = getRes.ok ? await getRes.json() : [];
+
+      // Build payload from drafted activities
+      const activitiesPayload = draftedActivities.map(draft => {
+        const activity = activities.find(a => a.name === draft.activityName);
+        return {
+          activity_id: activity?.id,
+          activity_name: draft.activityName,
+          tokens: draft.tokensEach,
+          target_month: draft.month
+        };
+      });
+
+      // Get existing activity IDs
+      const existingActivityIds = new Set(existingGoals.map((g: any) => g.activity_id));
+
+      // Identify activities to ADD (not in existing goals)
+      const activitiesToAdd = activitiesPayload.filter(
+        a => a.activity_id && !existingActivityIds.has(a.activity_id)
+      );
+
+      // Identify goals to DELETE (in existing but not in drafted)
+      const draftedActivityIds = new Set(activitiesPayload.map(a => a.activity_id));
+      const goalIdsToDelete = existingGoals
+        .filter((g: any) => g.activity_id && !draftedActivityIds.has(g.activity_id))
+        .map((g: any) => g.id);
+
+      // ADD new activities
+      if (activitiesToAdd.length > 0) {
+        const postRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/goals/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`
+          },
+          body: JSON.stringify({ 
+            activities: activitiesToAdd,
+            deadline: null 
+          })
+        });
+
+        if (!postRes.ok) {
+          const err = await postRes.json();
+          console.error("Failed to add activities:", err);
+          alert(err.detail?.error || err.detail || "Failed to add activities");
+          return;
+        }
+      }
+
+      // DELETE removed goals
+      if (goalIdsToDelete.length > 0) {
+        const delRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/goals/`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${accessToken}`
+          },
+          body: JSON.stringify({ 
+            goal_ids: goalIdsToDelete,
+            new_activities: activitiesPayload
+          })
+        });
+
+        if (!delRes.ok) {
+          const err = await delRes.json();
+          console.error("Failed to delete goals:", err);
+          alert(err.detail?.error || err.detail || "Failed to delete goals");
+          return;
+        }
+      }
+
+      // Refresh the saved plan from backend
+      const refreshRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/goals/`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      
+      if (refreshRes.ok) {
+        const data = await refreshRes.json();
+        const transformed = data.map((g: any) => ({
+          id: g.id.toString(),
+          activityName: g.activity_name,
+          month: g.target_month,
+          tokensEach: g.token
+        }));
+        setSavedPlan(transformed);
+      }
+
+      setOpen(false);
+      console.log("Plan saved successfully");
+    } catch (err) {
+      console.error("Error saving plan:", err);
+      alert("Something went wrong. Please try again.");
+    }
   }
 
   // ─── Render ──────────────────────────────────────────────
@@ -116,7 +210,7 @@ export function Sidebar() {
               <SelectValue placeholder="Activity..." />
             </SelectTrigger>
             <SelectContent>
-              {ACTIVITIES.map(a => (
+              {activities.map(a => (
                 <SelectItem key={a.name} value={a.name}>
                   <div className="flex w-full items-center justify-between gap-4">
                     <span className="truncate">{a.name}</span>

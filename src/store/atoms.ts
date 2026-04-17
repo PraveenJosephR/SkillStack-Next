@@ -47,3 +47,6 @@ export const selectedActivityAtom = atom<string>("")
 // selectedMonthAtom stores numeric month value (1-12) or null when not selected
 export const selectedMonthAtom = atom<number | null>(null)
 export const savedPlanAtom = atom<DraftedActivity[] | null>(null)
+
+// Access token atom for authenticated API requests
+export const accessTokenAtom = atom<string |null>(null)

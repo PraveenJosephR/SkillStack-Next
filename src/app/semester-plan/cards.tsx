@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { ClipboardList, Plus } from "lucide-react";
-import { userAtom, authLoadingAtom,semPlanDrawerOpen, monthsAtom, draftedActivitiesAtom, selectedActivityAtom, selectedMonthAtom, savedPlanAtom, DraftedActivity } from "@/store/atoms";
+import { userAtom, authLoadingAtom,semPlanDrawerOpen, monthsAtom, draftedActivitiesAtom, selectedActivityAtom, selectedMonthAtom, savedPlanAtom, DraftedActivity, accessTokenAtom } from "@/store/atoms";
 import { useAtom } from "jotai";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,14 +15,44 @@ import { Sidebar } from "./sheet";
 export function Cards() {
    const [user, setUser] = useAtom(userAtom)
    const [open, setOpen] = useAtom(semPlanDrawerOpen)
-  const [months] = useAtom(monthsAtom)
-  const [draftedActivities, setDraftedActivities] = useAtom(draftedActivitiesAtom)
-  const [selectedActivity, setSelectedActivity] = useAtom(selectedActivityAtom)
-  const [selectedMonth, setSelectedMonth] = useAtom(selectedMonthAtom)
-  const [savedPlan, setSavedPlan] = useAtom(savedPlanAtom)
-  useEffect(() => {
-    console.log("user:",user)
-  },[])
+   const [months] = useAtom(monthsAtom)
+   const [draftedActivities, setDraftedActivities] = useAtom(draftedActivitiesAtom)
+   const [selectedActivity, setSelectedActivity] = useAtom(selectedActivityAtom)
+   const [selectedMonth, setSelectedMonth] = useAtom(selectedMonthAtom)
+   const [savedPlan, setSavedPlan] = useAtom(savedPlanAtom)
+   const [accessToken] = useAtom(accessTokenAtom);
+
+   useEffect(() => {
+     console.log("user:",user)
+   },[])
+
+   useEffect(() => {
+     if (!accessToken) return;
+
+     async function fetchGoals() {
+       try {
+         const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/goals/`, {
+           headers: { Authorization: `Bearer ${accessToken}` }
+         });
+         
+         if (res.ok) {
+           const data = await res.json();
+           
+           const transformed = data.map((g: any) => ({
+             id: g.id.toString(),
+             activityName: g.activity_name,
+             month: g.target_month,
+             tokensEach: g.token
+           }));
+           setSavedPlan(transformed);
+         }
+       } catch (err) {
+         console.error("Failed to fetch goals:", err);
+       }
+     }
+
+     fetchGoals();
+   }, [accessToken, setSavedPlan]);
 
   // ─── Derived values ───────────────────────────────────────────────
   const savedTotalTokens =
@@ -38,8 +68,7 @@ export function Cards() {
 
 
   // ─── Grouped data for UI ──────────────────────────────────────────
-  const groupedSavedPlan =
-    savedPlan?.reduce((acc, curr) => {
+  const groupedSavedPlan = savedPlan?.reduce((acc, curr) => {
       if (!acc[curr.activityName]) {
         acc[curr.activityName] = {
           count: 0,
