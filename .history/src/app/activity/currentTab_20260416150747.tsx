@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import {
   Card,
   CardContent,
@@ -12,12 +14,6 @@ import CompleteActivityDialog from "./completeActivityDialog";
 import { Badge } from "@/components/ui/badge";
 import CustomTooltip from "@/components/custom-tool-tip";
 
-// const activities = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/activities/current`, {
-//     method: "GET",
-//     headers: { "Content-Type": "application/json" },
-//     credentials: "include", // Include cookies for authentication
-// }).then(res => res.json()).then(data => data.activities).catch(() => []); // Fallback to empty array on error
-
 type Activity = {
   name: string;
   description: string;
@@ -28,37 +24,67 @@ type Activity = {
   status: string;
 };
 
-const activities: Activity[] = [
-  {
-    name: "AI Workshop",
-    description: "Hands-on AI tools and models",
-    organization: "Tech Club",
-    tokens: 4,
-    endDate: "Apr 10, 2026",
-    progress: 80,
-    status: "AI Proof Verification",
-  },
-  {
-    name: "Hackathon",
-    description: "24-hour coding challenge",
-    organization: "Coding Society",
-    tokens: 6,
-    endDate: "May 2, 2026",
-    progress: 40,
-    status: "Event in Progress",
-  },
-  {
-    name: "Startup Seminar",
-    description: "Entrepreneurship and pitching",
-    organization: "Business Club",
-    tokens: 3,
-    endDate: "Apr 5, 2026",
-    progress: 5,
-    status: "Permission Approval",
-  },
-];
-
 export default function CurrentActivities() {
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function fetchActivities() {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/my-activities/activities`,
+          {
+            method: "GET",
+            headers: { "Content-Type": "application/json" },
+            credentials: "include", // if using cookies
+          },
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch activities");
+        }
+
+        const data = await res.json();
+
+        // Adjust mapping if backend fields differ
+        const formatted = (data.activities || []).map((item: any) => ({
+          name: item.name,
+          description: item.description,
+          organization: item.organization,
+          tokens: item.tokens,
+          endDate: item.end_date,
+          progress: item.progress,
+          status: item.status,
+        }));
+
+        setActivities(formatted);
+      } catch (err) {
+        console.error(err);
+        setError("Unable to load activities");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchActivities();
+  }, []);
+
+  // 🔄 Loading UI
+  if (loading) {
+    return <p className="text-muted-foreground">Loading activities...</p>;
+  }
+
+  // ❌ Error UI
+  if (error) {
+    return <p className="text-red-500">{error}</p>;
+  }
+
+  // 📭 Empty state
+  if (activities.length === 0) {
+    return <p className="text-muted-foreground">No activities found</p>;
+  }
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Current Activities</h2>
@@ -69,7 +95,7 @@ export default function CurrentActivities() {
             key={activity.name}
             className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4"
           >
-            {/* Left Content */}
+            {/* Left */}
             <div className="flex-1 space-y-2">
               <CardHeader className="p-0">
                 {activity.status === "Event in Progress" ? (
@@ -84,12 +110,12 @@ export default function CurrentActivities() {
                 ) : (
                   <CardTitle className="text-base">{activity.name}</CardTitle>
                 )}
+
                 <CardDescription>{activity.description}</CardDescription>
               </CardHeader>
 
               <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
                 <span>{activity.organization}</span>
-                {/* <span>• {activity.tokens} tokens</span> */}
                 <span>• Ends: {activity.endDate}</span>
               </div>
 
@@ -102,21 +128,17 @@ export default function CurrentActivities() {
               </div>
             </div>
 
+            {/* Right */}
             <div className="w-32 flex flex-col items-center justify-center rounded-xl px-4 py-3">
-              {/* Tokens */}
               <div className="text-center">
-                <p className="text-5xl font-bold tracking-tight">
-                  {activity.tokens}
-                </p>
-                <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                <p className="text-5xl font-bold">{activity.tokens}</p>
+                <p className="text-[10px] uppercase text-muted-foreground">
                   tokens
                 </p>
               </div>
 
-              {/* Divider */}
               <div className="my-2 h-px w-full bg-border" />
 
-              {/* Status */}
               <Badge variant="secondary" className="text-xs text-center">
                 {activity.status}
               </Badge>

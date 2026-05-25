@@ -12,11 +12,17 @@ import CompleteActivityDialog from "./completeActivityDialog";
 import { Badge } from "@/components/ui/badge";
 import CustomTooltip from "@/components/custom-tool-tip";
 
-// const activities = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/activities/current`, {
-//     method: "GET",
-//     headers: { "Content-Type": "application/json" },
-//     credentials: "include", // Include cookies for authentication
-// }).then(res => res.json()).then(data => data.activities).catch(() => []); // Fallback to empty array on error
+const activities = await fetch(
+  `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/my_activities/activities`,
+  {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include", // Include cookies for authentication
+  },
+)
+  .then((res) => res.json())
+  .then((data) => data.activities)
+  .catch(() => []); // Fallback to empty array on error
 
 type Activity = {
   name: string;

@@ -5,7 +5,7 @@ import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-import { userAtom, authLoadingAtom, accessTokenAtom } from "@/store/atoms";
+import { userAtom, authLoadingAtom } from "@/store/atoms";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -33,7 +33,6 @@ export function LoginForm({
   // Jotai state
   const [user, setUser] = useAtom(userAtom);
   const [loading, setLoading] = useAtom(authLoadingAtom);
-  const [accessToken, setAccessToken] = useAtom(accessTokenAtom);
 
   // Local form state
   const [email, setEmail] = useState("");
@@ -80,21 +79,15 @@ export function LoginForm({
         return;
       }
 
-      const servRes = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email_id: data.user.email }),
-        },
-      );
+      const servRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users/login`, {
+        method: "POST",
+        body: JSON.stringify({ email_id: data.user.email }),
+      });
 
       if (!servRes.ok) {
-        setError("User does not exist.");
+        setError(data.error || "User does not exist.");
         return;
       }
-      const servData = await servRes.json();
-      setAccessToken(servData.access_token);
 
       // Store user in Jotai state
       setUser(data.user);
@@ -130,23 +123,6 @@ export function LoginForm({
         setError(data.error || "Login failed");
         return;
       }
-
-      // Fetch access token from backend for the email
-      const servRes = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users/login`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email_id: data.user.email }),
-        },
-      );
-
-      if (!servRes.ok) {
-        setError("User does not exist in backend database.");
-        return;
-      }
-      const servData = await servRes.json();
-      setAccessToken(servData.access_token);
 
       // Store user in Jotai state
       setUser(data.user);

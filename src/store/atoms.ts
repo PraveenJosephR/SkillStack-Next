@@ -1,4 +1,5 @@
 import { atom } from "jotai"
+import { atomWithStorage } from "jotai/utils"
 
 export interface User {
   name: string
@@ -9,7 +10,7 @@ export interface User {
 }
 
 // Holds the logged-in user's info
-export const userAtom = atom<User | null>(null)
+export const userAtom = atomWithStorage<User | null>("user", null)
 
 // Auth loading state for showing spinners
 export const authLoadingAtom = atom<boolean>(false)
@@ -49,4 +50,4 @@ export const selectedMonthAtom = atom<number | null>(null)
 export const savedPlanAtom = atom<DraftedActivity[] | null>(null)
 
 // Access token atom for authenticated API requests
-export const accessTokenAtom = atom<string |null>(null)
+export const accessTokenAtom = atomWithStorage<string | null>("accessToken", null)
