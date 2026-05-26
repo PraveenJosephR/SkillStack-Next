@@ -42,7 +42,7 @@ const data = {
     },
     {
       title: "My Current Activities",
-      url: "/wip",
+      url: "/my-activities",
       icon: IconActivity,
     },
     {

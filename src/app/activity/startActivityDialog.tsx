@@ -63,7 +63,7 @@ export default function StartActivityDialog({ title }: { title: string }) {
 
 const onSubmit = (data: FormData) => {
   console.log(data);
-  toast.success("Proof Submitted!", { position: "bottom-right" })
+  toast.success("Activity Started!", { position: "bottom-right" })
   setOpen(false); // closes dialog
 };
 

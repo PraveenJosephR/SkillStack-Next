@@ -31,11 +31,20 @@ import { useEffect, useState } from "react";
 import { accessTokenAtom } from "@/store/atoms";
 
 async function getActivities() {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/goals/activities`,
-  );
-  const data = await res.json();
-  return data.map((a: any) => ({ name: a.activity_name, tokensEach: a.token }));
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/goals/activities`,
+    );
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        return data.map((a: any) => ({ name: a.activity_name, tokensEach: a.token }));
+      }
+    }
+  } catch (err) {
+    console.error("getActivities error:", err);
+  }
+  return [];
 }
 
 export function Sidebar() {
@@ -65,24 +74,36 @@ export function Sidebar() {
     if (!accessToken) return;
 
     async function fetchActivities() {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/goals/activities`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessToken}`,
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/goals/activities`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            },
           },
-        },
-      );
-      const data = await res.json();
-      setActivities(
-        data.map((a: any) => ({
-          id: a.id,
-          name: a.activity_name,
-          tokensEach: a.token,
-        })),
-      );
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data)) {
+            setActivities(
+              data.map((a: any) => ({
+                id: a.id,
+                name: a.activity_name,
+                tokensEach: a.token,
+              })),
+            );
+          } else {
+            console.error("fetchActivities: expected array, got", data);
+          }
+        } else {
+          console.error("fetchActivities failed with status:", res.status);
+        }
+      } catch (err) {
+        console.error("Error in fetchActivities:", err);
+      }
     }
     fetchActivities();
   }, [accessToken]);
@@ -215,13 +236,17 @@ export function Sidebar() {
 
       if (refreshRes.ok) {
         const data = await refreshRes.json();
-        const transformed = data.map((g: any) => ({
-          id: g.id.toString(),
-          activityName: g.activity_name,
-          month: g.target_month,
-          tokensEach: g.token,
-        }));
-        setSavedPlan(transformed);
+        if (Array.isArray(data)) {
+          const transformed = data.map((g: any) => ({
+            id: g.id.toString(),
+            activityName: g.activity_name,
+            month: g.target_month,
+            tokensEach: g.token,
+          }));
+          setSavedPlan(transformed);
+        } else {
+          console.error("Refresh goals: expected array, got", data);
+        }
       }
 
       setOpen(false);

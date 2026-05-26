@@ -38,13 +38,17 @@ export function Cards() {
          if (res.ok) {
            const data = await res.json();
            
-           const transformed = data.map((g: any) => ({
-             id: g.id.toString(),
-             activityName: g.activity_name,
-             month: g.target_month,
-             tokensEach: g.token
-           }));
-           setSavedPlan(transformed);
+           if (Array.isArray(data)) {
+             const transformed = data.map((g: any) => ({
+               id: g.id.toString(),
+               activityName: g.activity_name,
+               month: g.target_month,
+               tokensEach: g.token
+             }));
+             setSavedPlan(transformed);
+           } else {
+             console.error("fetchGoals: expected array, got", data);
+           }
          }
        } catch (err) {
          console.error("Failed to fetch goals:", err);

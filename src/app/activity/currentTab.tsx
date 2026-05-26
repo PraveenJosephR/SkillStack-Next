@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Card,
   CardContent,
@@ -59,12 +60,29 @@ const activities: Activity[] = [
 ];
 
 export default function CurrentActivities() {
+  const [activityList, setActivityList] = useState<Activity[]>(activities);
+
+  const handleUploadComplete = (activityName: string) => {
+    setActivityList((prev) =>
+      prev.map((a) => {
+        if (a.name === activityName) {
+          return {
+            ...a,
+            status: "AI Proof Verification",
+            progress: 100,
+          };
+        }
+        return a;
+      })
+    );
+  };
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">Current Activities</h2>
 
       <div className="space-y-4">
-        {activities.map((activity) => (
+        {activityList.map((activity) => (
           <Card
             key={activity.name}
             className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4"
@@ -77,7 +95,10 @@ export default function CurrentActivities() {
                     <CardTitle className="text-base">{activity.name}</CardTitle>
                     <CustomTooltip content="Complete activity?" position="top">
                       <span>
-                        <CompleteActivityDialog title={activity.name} />
+                        <CompleteActivityDialog
+                          title={activity.name}
+                          onComplete={() => handleUploadComplete(activity.name)}
+                        />
                       </span>
                     </CustomTooltip>
                   </div>

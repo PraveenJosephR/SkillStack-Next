@@ -11,7 +11,15 @@ import { Button } from "@/components/ui/button";
 import { Upload, X } from "lucide-react";
 import CustomTooltip from "@/components/custom-tool-tip"
 
-export default function CompleteActivityDialog({ title }: { title: string }) {
+export default function CompleteActivityDialog({
+  title,
+  buttonText,
+  onComplete,
+}: {
+  title: string;
+  buttonText?: string;
+  onComplete?: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -34,7 +42,11 @@ export default function CompleteActivityDialog({ title }: { title: string }) {
       return;
     }
 
-    toast.success("Activity Started", { position: "bottom-right" })
+    toast.success("Proof Submitted!", { position: "bottom-right" });
+
+    if (onComplete) {
+      onComplete();
+    }
 
     setFile(null);
     setPreview(null);
@@ -46,8 +58,8 @@ export default function CompleteActivityDialog({ title }: { title: string }) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         
-        <Button size="xs" variant="outline">
-          <CircleCheckBig strokeWidth={3.5}/>
+        <Button size={buttonText ? "sm" : "xs"} variant="outline">
+          {buttonText ? buttonText : <CircleCheckBig strokeWidth={3.5}/>}
         </Button>
         
       </DialogTrigger>
