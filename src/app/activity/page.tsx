@@ -23,14 +23,9 @@ const page = () => {
                     <Tabs defaultValue="activity" >
                         <TabsList variant="line" className="relative ![&_[data-state=active]]:bg-primary">
                             <TabsTrigger   value="activity">Activities</TabsTrigger>
-                            <TabsTrigger  value="current">Current</TabsTrigger>
-                            
                         </TabsList>
                         <TabsContent value="activity">
                             <ActivityCards />
-                        </TabsContent>
-                        <TabsContent value="current">
-                            <CurrentActivities />
                         </TabsContent>
                     </Tabs>
 

@@ -1,6 +1,8 @@
 "use client"
 
 import * as React from "react"
+import { useAtom } from "jotai"
+import { userAtom } from "@/store/atoms"
 import {
   IconHome,
   IconUser,
@@ -23,37 +25,57 @@ import {
   SidebarSeparator,
 } from "@/components/ui/sidebar"
 
-const data = {
-  navMain: [
-    {
-      title: "Feed",
-      url: "/dashboard",
-      icon: IconHome,
-    },
-    {
-      title: "Semester Plan",
-      url: "/semester-plan",
-      icon: IconCalendarMonth,
-    },
-    {
-      title: "Activity Center",
-      url: "/activity",
-      icon: IconTargetArrow,
-    },
-    {
-      title: "My Current Activities",
-      url: "/my-activities",
-      icon: IconActivity,
-    },
-    {
-      title: "Leaderboard",
-      url: "/wip",
-      icon: IconTrophy,
-    },
-  ],
-}
-
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [user] = useAtom(userAtom)
+  const isStaff = user?.role_id == 2 || user?.role === "staff" || user?.role === "admin"
+
+  const navItems = isStaff
+    ? [
+        {
+          title: "Feed",
+          url: "/dashboard",
+          icon: IconHome,
+        },
+        {
+          title: "Teacher Dashboard",
+          url: "/teacher/dashboard",
+          icon: IconUser,
+        },
+        {
+          title: "Student Approvals",
+          url: "/teacher/approvals",
+          icon: IconActivity,
+        },
+      ]
+    : [
+        {
+          title: "Feed",
+          url: "/dashboard",
+          icon: IconHome,
+          iconActive: true,
+        },
+        {
+          title: "Semester Plan",
+          url: "/semester-plan",
+          icon: IconCalendarMonth,
+        },
+        {
+          title: "Activity Center",
+          url: "/activity",
+          icon: IconTargetArrow,
+        },
+        {
+          title: "My Current Activities",
+          url: "/my-activities",
+          icon: IconActivity,
+        },
+        {
+          title: "Leaderboard",
+          url: "/wip",
+          icon: IconTrophy,
+        },
+      ]
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       {/* Sidebar Header — Branding */}
@@ -84,7 +106,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
       {/* Sidebar Content — Nav Links */}
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navItems} />
       </SidebarContent>
 
       {/* Sidebar Footer */}

@@ -145,13 +145,11 @@ export function Sidebar() {
 
       const existingGoals = getRes.ok ? await getRes.json() : [];
 
-      // Build payload from drafted activities
+      // Build payload from drafted activities (matches StudentGoalCreate schema)
       const activitiesPayload = draftedActivities.map((draft) => {
         const activity = activities.find((a) => a.name === draft.activityName);
         return {
           activity_id: activity?.id,
-          activity_name: draft.activityName,
-          tokens: draft.tokensEach,
           target_month: draft.month,
         };
       });
@@ -176,7 +174,7 @@ export function Sidebar() {
         )
         .map((g: any) => g.id);
 
-      // ADD new activities
+      // ADD new activities (POST expects { activities: [{activity_id, target_month}] })
       if (activitiesToAdd.length > 0) {
         const postRes = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/goals/`,
@@ -187,8 +185,10 @@ export function Sidebar() {
               Authorization: `Bearer ${accessToken}`,
             },
             body: JSON.stringify({
-              activities: activitiesToAdd,
-              deadline: null,
+              activities: activitiesToAdd.map(a => ({
+                activity_id: a.activity_id,
+                target_month: a.target_month ?? null,
+              })),
             }),
           },
         );
@@ -213,7 +213,6 @@ export function Sidebar() {
             },
             body: JSON.stringify({
               goal_ids: goalIdsToDelete,
-              new_activities: activitiesPayload,
             }),
           },
         );

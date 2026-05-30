@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 import { userAtom, authLoadingAtom, accessTokenAtom } from "@/store/atoms";
+import { jwtDecode } from "jwt-decode";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -96,9 +97,35 @@ export function LoginForm({
       const servData = await servRes.json();
       setAccessToken(servData.access_token);
 
+      let backendRoleId = servData.role_id || servData.user?.role_id;
+      let backendRole = servData.role || servData.user?.role;
+      try {
+        const decoded: any = jwtDecode(servData.access_token);
+        if (decoded?.role_id) backendRoleId = decoded.role_id;
+        if (decoded?.role) backendRole = decoded.role;
+        else if (decoded?.roles) backendRole = decoded.roles;
+      } catch (e) {
+        console.error("Failed to decode backend access token:", e);
+      }
+
+      let mappedRole = data.user.role;
+      if (backendRoleId == 2) {
+        mappedRole = "staff";
+      } else if (backendRoleId == 1) {
+        mappedRole = "student";
+      } else if (backendRole) {
+        mappedRole = backendRole;
+      }
+
+      const mergedUser = {
+        ...data.user,
+        role: mappedRole,
+        role_id: backendRoleId || (mappedRole === "staff" ? 2 : 1),
+      };
+
       // Store user in Jotai state
-      setUser(data.user);
-      console.log("Logged in via Google:", data.user);
+      setUser(mergedUser);
+      console.log("Logged in via Google:", mergedUser);
 
       // Redirect to dashboard
       router.push("/dashboard");
@@ -148,9 +175,35 @@ export function LoginForm({
       const servData = await servRes.json();
       setAccessToken(servData.access_token);
 
+      let backendRoleId = servData.role_id || servData.user?.role_id;
+      let backendRole = servData.role || servData.user?.role;
+      try {
+        const decoded: any = jwtDecode(servData.access_token);
+        if (decoded?.role_id) backendRoleId = decoded.role_id;
+        if (decoded?.role) backendRole = decoded.role;
+        else if (decoded?.roles) backendRole = decoded.roles;
+      } catch (e) {
+        console.error("Failed to decode backend access token:", e);
+      }
+
+      let mappedRole = data.user.role;
+      if (backendRoleId == 2) {
+        mappedRole = "staff";
+      } else if (backendRoleId == 1) {
+        mappedRole = "student";
+      } else if (backendRole) {
+        mappedRole = backendRole;
+      }
+
+      const mergedUser = {
+        ...data.user,
+        role: mappedRole,
+        role_id: backendRoleId || (mappedRole === "staff" ? 2 : 1),
+      };
+
       // Store user in Jotai state
-      setUser(data.user);
-      console.log("Logged in via email:", data.user);
+      setUser(mergedUser);
+      console.log("Logged in via email:", mergedUser);
 
       // Redirect to dashboard
       router.push("/dashboard");
@@ -169,19 +222,19 @@ export function LoginForm({
       <Card className="overflow-hidden p-0 border border-white/30 bg-black/40 backdrop-blur-2xl shadow-2xl">
         <CardContent className="p-0">
           <form className="p-6 md:p-8" onSubmit={handleEmailLogin}>
-            <FieldGroup>
-              <div className="flex flex-col items-center gap-2 text-center">
-                <div className="flex items-center gap-3">
-                  <img
-                    src="/images/sathyabama-logo.png"
-                    alt="Sathyabama Logo"
-                    className="h-10 w-10 object-contain rounded-full"
-                  />
-                  <h1 className="text-2xl font-bold text-white">
+            <FieldGroup className="gap-5">
+              <div className="flex flex-col items-center gap-3 text-center mb-2">
+                <img
+                  src="/images/sathyabama-logo.png"
+                  alt="Sathyabama Logo"
+                  className="h-16 w-16 object-contain rounded-full bg-white/10 p-1 border border-white/20"
+                />
+                <div className="space-y-1">
+                  <h1 className="text-2xl font-bold tracking-tight text-white">
                     Sathyabama University
                   </h1>
+                  <p className="text-sm text-white/70">Welcome Back</p>
                 </div>
-                <p className="text-balance text-white/90">Welcome Back</p>
               </div>
 
               {/* Error message */}
@@ -192,7 +245,7 @@ export function LoginForm({
               )}
 
               <Field>
-                <FieldLabel htmlFor="email" className="text-white font-medium">
+                <FieldLabel htmlFor="email" className="text-white font-medium mb-1">
                   Email
                 </FieldLabel>
                 <Input
@@ -208,7 +261,7 @@ export function LoginForm({
               </Field>
 
               <Field>
-                <div className="flex items-center">
+                <div className="flex items-center justify-between w-full mb-1">
                   <FieldLabel
                     htmlFor="password"
                     className="text-white font-medium"
@@ -217,9 +270,9 @@ export function LoginForm({
                   </FieldLabel>
                   <a
                     href="#"
-                    className="ml-auto text-sm text-white/80 underline-offset-2 hover:underline hover:text-white"
+                    className="text-xs text-white/80 underline-offset-4 hover:underline hover:text-white transition-colors"
                   >
-                    Forgot your password?
+                    Forgot password?
                   </a>
                 </div>
                 <Input
@@ -233,21 +286,25 @@ export function LoginForm({
                 />
               </Field>
 
-              <Field>
+              <div className="mt-2">
                 <Button
                   type="submit"
-                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 border-none"
+                  className="w-full bg-primary text-primary-foreground hover:bg-primary/90 border-none h-[40px] font-semibold"
                   disabled={loading}
                 >
                   {loading ? "Logging in..." : "Login"}
                 </Button>
-              </Field>
+              </div>
 
-              <FieldSeparator className="*:data-[slot=field-separator-content]:bg-transparent text-white/80 [&>*]:border-white/30">
-                Or continue with
-              </FieldSeparator>
+              <div className="relative flex items-center justify-center py-2 gap-4">
+                <div className="h-px flex-1 bg-white/20" />
+                <span className="text-xs uppercase tracking-wider text-white/50 font-semibold shrink-0">
+                  Or continue with
+                </span>
+                <div className="h-px flex-1 bg-white/20" />
+              </div>
 
-              <Field className="grid grid-cols-1 gap-4">
+              <div>
                 <button
                   type="button"
                   onClick={handleGoogleLoginClick}
@@ -278,9 +335,9 @@ export function LoginForm({
                   </svg>
                   Continue with Google
                 </button>
-              </Field>
+              </div>
 
-              <FieldDescription className="text-center text-white/80">
+              <FieldDescription className="text-center text-white/80 mt-1">
                 Don&apos;t have an account?{" "}
                 <a
                   href="#"

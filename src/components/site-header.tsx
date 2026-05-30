@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation"
 import { Coins, LogOut, Plus, User } from "lucide-react"
 import { useState, useEffect } from "react"
 
-import { userAtom } from "@/store/atoms"
+import { userAtom, accessTokenAtom } from "@/store/atoms"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
 import { ModeToggle } from "@/components/theme-toggle"
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -24,12 +24,34 @@ import NotificationDropdown from "./notifications"
 
 export function SiteHeader() {
   const [user, setUser] = useAtom(userAtom)
+  const [accessToken] = useAtom(accessTokenAtom)
   const [isMounted, setIsMounted] = useState(false)
+  const [totalTokens, setTotalTokens] = useState<number | null>(null)
   const router = useRouter()
 
   useEffect(() => {
     setIsMounted(true)
   }, [])
+
+  // Fetch real token balance from backend
+  useEffect(() => {
+    if (!accessToken) return
+    async function fetchTokens() {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/users/tokens`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        )
+        if (res.ok) {
+          const data = await res.json()
+          setTotalTokens(data.total_tokens ?? 0)
+        }
+      } catch {
+        // silently fail — non-critical UI element
+      }
+    }
+    fetchTokens()
+  }, [accessToken])
 
   function handleSignOut() {
     setUser(null)
@@ -66,15 +88,18 @@ export function SiteHeader() {
           </span>
         </div>
 
-        {/* Right side — Theme Toggle + Profile Avatar Dropdown */}
+        {/* Right side — Theme Toggle + Tokens + Profile Avatar Dropdown */}
         <div className="ml-auto flex items-center gap-2">
-          <Badge className="bg-yellow-100 p-2 text-yellow-700 cursor-pointer dark:bg-yellow-900/40 dark:text-yellow-400 font-bold" onClick={()=>router.push("/activity")}>
-            <Coins strokeWidth={2.5}/>
-            18
-            <Plus strokeWidth={2.5}/>
-            </Badge>
+          <Badge
+            className="bg-yellow-100 p-2 text-yellow-700 cursor-pointer dark:bg-yellow-900/40 dark:text-yellow-400 font-bold"
+            onClick={() => router.push("/activity")}
+          >
+            <Coins strokeWidth={2.5} />
+            {totalTokens !== null ? totalTokens : "–"}
+            <Plus strokeWidth={2.5} />
+          </Badge>
           <ModeToggle />
-<NotificationDropdown/>
+          <NotificationDropdown />
           {isMounted ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -93,17 +118,17 @@ export function SiteHeader() {
                       {user?.name ?? "User"}
                     </p>
                     <p className="text-xs text-muted-foreground leading-none">
-                      {user?.email ?? ""}
+                      {user?.email ?? user?.email_id ?? ""}
                     </p>
                   </div>
                 </DropdownMenuLabel>
 
                 <DropdownMenuSeparator />
-<DropdownMenuItem onClick={()=>router.push("/profile")} className="cursor-pointer">
+                <DropdownMenuItem onClick={() => router.push("/profile")} className="cursor-pointer">
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer ">
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
                   Sign Out
                 </DropdownMenuItem>

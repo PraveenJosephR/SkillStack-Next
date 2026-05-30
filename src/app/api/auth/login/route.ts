@@ -18,20 +18,19 @@ export async function POST(request: NextRequest) {
     // 2. Verify the password hash
     // 3. Return the user data or an error
 
-    // Placeholder validation — accepts any @sathyabama.ac.in email
-    if (!email.endsWith("@sathyabama.ac.in")) {
-      return NextResponse.json(
-        { error: "Please use your Sathyabama email address" },
-        { status: 401 }
-      )
-    }
+    // Determine role dynamically based on email prefix
+    const emailLower = email.toLowerCase()
+    const isStaff =
+      emailLower.startsWith("teacher") ||
+      emailLower.startsWith("faculty") ||
+      emailLower.startsWith("staff")
 
     const user = {
       name: email.split("@")[0],
       email: email,
       picture: "",
       sub: `local_${Date.now()}`,
-      role: "student",
+      role: isStaff ? "staff" : "student",
     }
 
     return NextResponse.json({ user }, { status: 200 })

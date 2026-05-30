@@ -2,11 +2,18 @@ import { atom } from "jotai"
 import { atomWithStorage } from "jotai/utils"
 
 export interface User {
+  // Backend UserInfo fields
+  id?: number
   name: string
-  email: string
-  picture: string
-  sub: string
-  role?: string // "student" | "staff" | "admin"
+  email_id?: string  // backend uses email_id
+  role_id?: number | string
+  is_active?: number
+
+  // Google OAuth fields (kept for backward compat)
+  email?: string
+  picture?: string
+  sub?: string
+  role?: string // "student" | "staff" | "admin" — derived from role_id
 }
 
 // Holds the logged-in user's info

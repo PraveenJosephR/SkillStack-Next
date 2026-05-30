@@ -52,12 +52,18 @@ export async function POST(request: NextRequest) {
 
     // TODO: Look up or create the user in your database here
     // For now, we return the decoded Google user info
+    const emailLower = decoded.email.toLowerCase()
+    const isStaff =
+      emailLower.startsWith("teacher") ||
+      emailLower.startsWith("faculty") ||
+      emailLower.startsWith("staff")
+
     const user = {
       name: decoded.name,
       email: decoded.email,
       picture: decoded.picture,
       sub: decoded.sub,
-      role: "student", // Default role — replace with DB lookup
+      role: isStaff ? "staff" : "student",
     }
 
     return NextResponse.json({ user }, { status: 200 })
